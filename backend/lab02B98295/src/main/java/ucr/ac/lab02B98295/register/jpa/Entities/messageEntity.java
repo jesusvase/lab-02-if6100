@@ -19,7 +19,7 @@ public class messageEntity {
     private String message;
 
     @Column()
-    private LocalDateTime fecha;
+    private LocalDateTime date_;
 
     @Column()
     private UUID user_id;
@@ -40,12 +40,12 @@ public class messageEntity {
         this.message = message;
     }
 
-    public LocalDateTime getFecha() {
-        return fecha;
+    public LocalDateTime getDate_() {
+        return date_;
     }
 
-    public void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
+    public void setDate_(LocalDateTime date_) {
+        this.date_ = date_;
     }
 
     public UUID getUser_id() {
@@ -61,11 +61,11 @@ public class messageEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         messageEntity that = (messageEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(message, that.message) && Objects.equals(fecha, that.fecha) && Objects.equals(user_id, that.user_id);
+        return Objects.equals(id, that.id) && Objects.equals(message, that.message) && Objects.equals(date_, that.date_) && Objects.equals(user_id, that.user_id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, message, fecha, user_id);
+        return Objects.hash(id, message, date_, user_id);
     }
 }

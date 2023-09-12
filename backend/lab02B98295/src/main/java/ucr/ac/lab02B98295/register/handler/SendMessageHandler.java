@@ -65,14 +65,14 @@ public class SendMessageHandler {
             messageEntity newMessage = new messageEntity();
             newMessage.setId(UUID.randomUUID());
             newMessage.setMessage(message());
-            newMessage.setFecha(LocalDateTime.now());
+            newMessage.setDate_(LocalDateTime.now());
             newMessage.setUser_id(user.getId());
 
             // Guardar el mensaje en la base de datos
             messageRepository.save(newMessage);
 
             // Retornar solo el mensaje
-            return "Id: "+newMessage.getId()+"\nCreatedON: "+newMessage.getFecha()+"\nmesage: "+newMessage.getMessage();
+            return "Id: "+newMessage.getId()+"\nCreatedON: "+newMessage.getDate_()+"\nmesage: "+newMessage.getMessage();
         }
     }
     public String handle(Command command) {

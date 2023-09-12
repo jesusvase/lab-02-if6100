@@ -55,7 +55,7 @@ public class GetMessageHandler {
                 for (messageEntity message : messages) {
                     String alias = user.getAlias();
                     String message2 = message.getMessage();
-                    String createdOn = message.getFecha().toString();
+                    String createdOn = message.getDate_().toString();
 
                     String formattedMessage = (" Alias :" + alias + "\n Message: " + message2 + "\n createdOn: " + createdOn + "\n");
 
