@@ -35,39 +35,39 @@ public class GetMessageHandler {
             String identifier
     ) {
 
-        public List<String> toEntities(RoomRepository roomRepository, MessageRepository messageRepository,UserRepository userRepository) {
+        public String toEntities(RoomRepository roomRepository, MessageRepository messageRepository,UserRepository userRepository) {
             List<String> messagesList = new ArrayList<>();
 
-            // Verificar si el identificador de la sala es válido
-            roomEntity room = roomRepository.findByIdentifier(identifier);
-            if (room == null) {
-                return null; // Retorna null si el identificador de la sala no existe
+            if (identifier() == null || identifier().isEmpty()) {
+                return null;
             }
 
-            // Obtener todos los mensajes de la sala en el orden en que están
+            roomEntity room = roomRepository.findByIdentifier(identifier);
+            if (room == null) {
+                return null;
+            }
+
             List<messageEntity> messages = messageRepository.findAll();
 
-            // Recorrer los mensajes y agregarlos a la lista de resultados
             for (messageEntity message : messages) {
                 Optional<userEntity> userOptional = userRepository.findById(message.getUser_id());
                 String alias = userOptional.map(userEntity::getAlias).orElse("Usuario no encontrado");
-                //String alias = message.getUser_id().toString(); // Puedes usar el user_id como alias, o el campo adecuado
-                String mensaje = message.getMessage();
-                String createdOn = message.getFecha().toString(); // Supongamos que la fecha está en un formato adecuado
+                String message2 = message.getMessage();
+                String createdOn = message.getFecha().toString();
 
-                String formattedMessage = String.format("Alias: %s\nMensaje: %s\nFecha y hora: %s", alias, mensaje, createdOn);
+                String formattedMessage = (" Alias :"+alias+"\n Message: "+message2+"\n createdOn: "+createdOn+"\n");
                 messagesList.add(formattedMessage);
             }
 
-            return messagesList;
+            return "Id: " +room.getIdentifier()+"\nName :"+room.getName() +"\nMessage:\n"+messagesList;
         }
 
 
     }
 
 
-    public List<String> handle(Command command) {
-        List<String> result = new ArrayList<>();
+    public String handle(Command command) {
+        String result;
         result= command.toEntities(roomRepository,messageRepository,userRepository);
 
         return result; // Puedes devolver directamente el resultado

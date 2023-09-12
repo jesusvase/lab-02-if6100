@@ -70,15 +70,14 @@ public class InsertRoomController {
     }
 
     @GetMapping("/room/message")
-        public ResponseEntity<List<String>>GetMessage(@RequestBody GetMessage payload){
-        List<String> result2 = null;
-        List<String> result = handler4.handle(new GetMessageHandler.Command(
+        public ResponseEntity GetMessage(@RequestBody GetMessage payload){
+        String result = handler4.handle(new GetMessageHandler.Command(
                 payload.identifier()
         ));
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result2);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
         }
     }
     }
