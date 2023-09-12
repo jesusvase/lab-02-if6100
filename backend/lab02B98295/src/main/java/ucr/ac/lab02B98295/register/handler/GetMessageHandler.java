@@ -35,7 +35,7 @@ public class GetMessageHandler {
             String identifier
     ) {
 
-        public String toEntities(RoomRepository roomRepository, MessageRepository messageRepository,UserRepository userRepository) {
+        public String toEntities(RoomRepository roomRepository, MessageRepository messageRepository, UserRepository userRepository) {
             List<String> messagesList = new ArrayList<>();
 
             if (identifier() == null || identifier().isEmpty()) {
@@ -47,20 +47,25 @@ public class GetMessageHandler {
                 return null;
             }
 
-            List<messageEntity> messages = messageRepository.findAll();
+            List<userEntity> usersInRoom = userRepository.findByRoomId(room.getId());
 
-            for (messageEntity message : messages) {
-                Optional<userEntity> userOptional = userRepository.findById(message.getUser_id());
-                String alias = userOptional.map(userEntity::getAlias).orElse("Usuario no encontrado");
-                String message2 = message.getMessage();
-                String createdOn = message.getFecha().toString();
+            for (userEntity user : usersInRoom) {
+                List<messageEntity> messages = messageRepository.findByUserId(user.getId());
 
-                String formattedMessage = (" Alias :"+alias+"\n Message: "+message2+"\n createdOn: "+createdOn+"\n");
-                messagesList.add(formattedMessage);
+                for (messageEntity message : messages) {
+                    String alias = user.getAlias();
+                    String message2 = message.getMessage();
+                    String createdOn = message.getFecha().toString();
+
+                    String formattedMessage = (" Alias :" + alias + "\n Message: " + message2 + "\n createdOn: " + createdOn + "\n");
+
+                    messagesList.add(formattedMessage);
+                }
             }
 
-            return "Id: " +room.getIdentifier()+"\nName :"+room.getName() +"\nMessage:\n"+messagesList;
+            return "Id: " + room.getIdentifier() + "\nName :" + room.getName() + "\nMessage:\n" + messagesList;
         }
+
 
 
     }
