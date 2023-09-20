@@ -1,5 +1,7 @@
 package ucr.ac.lab02B98295.register.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.nio.sctp.MessageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,34 +12,31 @@ import ucr.ac.lab02B98295.register.jpa.repositories.MessageRepository;
 import ucr.ac.lab02B98295.register.jpa.repositories.RoomRepository;
 import ucr.ac.lab02B98295.register.jpa.repositories.UserRepository;
 
-import java.time.LocalDateTime;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
 
 @Component
 public class GetMessageHandler {
 
+    @Autowired
+    private RoomRepository roomRepository;
 
-        String alias;
-        @Autowired
-        private RoomRepository roomRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-        @Autowired
-        private UserRepository userRepository;
+    @Autowired
+    private MessageRepository messageRepository;
 
-        @Autowired
-        private MessageRepository messageRepository;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public record Command(
             String identifier
     ) {
-
-        public String toEntities(RoomRepository roomRepository, MessageRepository messageRepository, UserRepository userRepository) {
-            List<String> messagesList = new ArrayList<>();
-
+        public String toEntities(RoomRepository roomRepository, UserRepository userRepository, MessageRepository messageRepository) {
             if (identifier() == null || identifier().isEmpty()) {
                 return null;
             }
@@ -49,33 +48,52 @@ public class GetMessageHandler {
 
             List<userEntity> usersInRoom = userRepository.findByRoomId(room.getId());
 
+            List<MessageInfo> messagesList = new ArrayList<>();
+
             for (userEntity user : usersInRoom) {
                 List<messageEntity> messages = messageRepository.findByUserId(user.getId());
 
+                messages.sort(Comparator.comparing(messageEntity::getDate_));
+
                 for (messageEntity message : messages) {
                     String alias = user.getAlias();
-                    String message2 = message.getMessage();
-                    String createdOn = message.getDate_().toString();
+                    String messageText = message.getMessage();
+                    String createdOn = message.getDate_().format(DateTimeFormatter.ISO_DATE_TIME);
 
-                    String formattedMessage = (" Alias :" + alias + "\n Message: " + message2 + "\n createdOn: " + createdOn + "\n");
+                    MessageInfo formattedMessage = new MessageInfo(alias, messageText, createdOn);
 
                     messagesList.add(formattedMessage);
                 }
             }
 
-            return "Id: " + room.getIdentifier() + "\nName :" + room.getName() + "\nMessage:\n" + messagesList;
+            RoomInfo roomInfo = new RoomInfo(room.getIdentifier(), room.getName(), messagesList);
+
+            try {
+                return objectMapper.writeValueAsString(roomInfo);
+            } catch (JsonProcessingException e) {
+                return null;
+            }
         }
 
-
-
     }
-
 
     public String handle(Command command) {
-        String result;
-        result= command.toEntities(roomRepository,messageRepository,userRepository);
+        String result = command.toEntities(roomRepository, userRepository, messageRepository);
 
-        return result; // Puedes devolver directamente el resultado
+        return result;
+    }
+
+    public record RoomInfo(
+            String id,
+            String name,
+            List<MessageInfo> messages
+    ) {
+    }
+
+    public record MessageInfo(
+            String alias,
+            String message,
+            String createdOn
+    ) {
     }
 }
-

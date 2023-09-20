@@ -1,5 +1,7 @@
 package ucr.ac.lab02B98295.register.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ucr.ac.lab02B98295.register.jpa.Entities.roomEntity;
@@ -21,6 +23,8 @@ public class UserJoinHandler {
     @Autowired
     private UserRepository repository2;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     public record Command(
             String identifier,
             String alias
@@ -28,20 +32,17 @@ public class UserJoinHandler {
         public List<String> toEntities(RoomRepository repository, UserRepository repository2) {
             List<String> savedUserAliases = new ArrayList<>();
 
-            // Validar que los campos no sean nulos o vacíos
             if (identifier() == null || identifier().isEmpty() ||
                     alias() == null || alias().isEmpty()) {
                 return savedUserAliases;
             }
 
-            // Buscar la sala por identificador utilizando el repositorio inyectado
             roomEntity room = repository.findByIdentifier(identifier());
 
             if (room == null) {
                 return savedUserAliases;
             }
 
-            // Verificar si el alias es único en la sala utilizando el repositorio2 inyectado
             boolean isAliasUnique = repository2.isAliasUniqueInRoom(alias(), room.getId());
 
             if (!isAliasUnique) {
@@ -55,7 +56,6 @@ public class UserJoinHandler {
             user.setAlias(alias());
             user.setRoom_id(room.getId());
 
-            // Guardar el usuario en la base de datos
             repository2.save(user);
 
             savedUserAliases.addAll(repository2.findAliasesInRoom(room.getId()));
@@ -64,15 +64,22 @@ public class UserJoinHandler {
         }
     }
 
-    public String handle(Command command) {
+    public String handle(Command command) throws JsonProcessingException {
         List<String> savedUserAliases = command.toEntities(repository, repository2);
 
         if (savedUserAliases.isEmpty()) {
             return null;
         }
-        String result = "id =" + command.identifier() +"\nname ="+ name +"\nUsers = "+ savedUserAliases;
 
-        return String.join(",", result);
+        RoomInfo roomInfo = new RoomInfo(command.identifier(), name, savedUserAliases);
+        return objectMapper.writeValueAsString(roomInfo);
+    }
+
+    public record RoomInfo(
+            String id,
+            String name,
+            List<String> users
+    ) {
     }
 }
 
